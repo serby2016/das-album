@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <title>Das Album</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="image album analizer">
+        <meta name="author" content="das g-soft">
+        <script src='g_res/js/jquery-1.8.3.min.js'></script>
+        <script src='g_res/js/jquery.elevatezoom.js'></script>
+        <script type="text/javascript" src="g_res/js/exif.js"></script>
+        <script src='g_res/js/perfect-scrollbar.jquery.js'></script>
+        <script src='g_res/js/dasG.js'></script>        
+        <link rel="stylesheet" type="text/css" title="base" href="g_res/css/album.css">
+        <link rel="stylesheet" type="text/css" href="g_res/css/perfect-scrollbar.css">
+        <link rel="alternate stylesheet" type="text/css" title="white" href="g_res/css/albumW.css">
+        <link rel="alternate stylesheet" type="text/css" title="gray" href="g_res/css/albumG.css"> 
+        <script type="text/javascript">
+            var galleryDir="gallery";
+            var galleryarray=[
+                {file:"1.png",desc:""},
+                {file:"2.png",desc:""},
+                {file:"3.png",desc:""},
+                {file:"4.png",desc:""},
+                {file:"5.png",desc:""},
+                {file:"6.png",desc:""},
+                {file:"7.png",desc:""},
+                {file:"8.png",desc:""},
+                {file:"9.png",desc:""}                
+            ];
+        </script>        
+    </head>
+    <body>
+        <br/>
+        Das G-soft album
+        <br>
+        <div id="savedImages" class="ontopDiv">
+            <div class="close"></div>
+            <div id="savedImagesLst"></div>
+        </div>
+        <div id="main">   
+           
+            <div id="right">
+                <div class="nav" id="ctrls">                    
+                    <div id="bPlay" class="btn playBtn">&nbsp;</div>
+                    <div id="posDiv">
+                        <span>file&nbsp;</span>
+                        <input id="fileNoIn" type="text" name="fileNo" size="3" class="curFile">
+                        <span>&nbsp;of&nbsp;</span>
+                        <span id="pos"></span>
+                    </div>
+                    <div id="bDown" class="btn prevBtn">&nbsp;</div>
+                    <div id="bUp" class="btn nextBtn">&nbsp;</div>
+                    <div id="bFull" class="btn showFull">&nbsp;</div>
+                    <span id="getHelp">?</span>
+                </div>   
+                <div id="albums">
+                    
+                    <!-- build javascript directory structure based on gallery content-->                
+                </div>
+            </div>
+             <div id="left">
+                <div id="fileName"></div>                
+                <div id="show">                    
+                    <img id="slideshow" src="g_res/img/noImage.png" data-zoom-image="g_res/img/noImage.png" />                    
+                <div id="diffDiv">
+                    <canvas id="diffCanvas" style="z-index: 2;"></canvas>
+                </div>
+                </div>                
+            </div>
+            <div id="filmStripLabel">Film Strip</div>
+            <div id="footer">
+                <div id="scroller">
+                    <ul id="listImg"></ul>
+                </div>
+            </div>
+
+        </div>  
+        <div class="help ontopDiv">
+            <div class="close"></div>
+            <span onclick="$('#bUp').click();"><b>left arrow</b> - go to prev image</span>
+            <span onclick="$('#bDown').click();"><b>right arrow</b> - go to next image</span>
+            <span onclick="switch_style('white');"><b>up arrow</b> - change colors to light</span>
+            <span onclick="switch_style('gray');"><b>down arrow</b> - change colors to dark</span>
+            <span onclick="$('#bPlay').click();"><b>p</b> - start slide show play</span>
+            <span onclick="$('#filmStripLabel').click();"><b>f</b> - toggle film strip</span>       
+            <span onclick="toggleExifInfo();"><b>e</b> - toggle display exif info</span>
+            <span onclick="displaySavedImages();"><b>a</b> - display filename saved box</span>
+            <span onclick="saveCurrentImage();"><b>s</b> - save file name in box</span>
+            <span onclick="toggleSaveFiles();"><b>w</b> - toggle auto save file name in box</span>
+            <span onclick="unsaveCurrentImage();"><b>d</b> - delete file name in box</span>
+            <span onclick="$('#getHelp').click();"><b>?</b> - show this help</span>       
+            <span onclick="$('.ontopDiv').hide();"><b>esc</b> - close on-top window</span>       
+            <div id="diffChk"><span><b>v</b> - change to diff mode</span></div> 
+        </div>
+        <div id="fullSizeDiv" class="ontopDiv"><img id="fullSizeImg" src="g_res/img/noImage.png"></div>
+        <div class="exif ontopDiv">
+            <div class="close"></div>
+            <div id="exifInfo"></div>
+        </div>
+
+        <script type="text/javascript">
+
+          var curimg = 0;
+
+          var play = false;
+
+          var ez;
+          var showDiff = false;
+          var diffReady = true;
+
+          var lastid = curimg;
+          var canvas0 = document.getElementById("diffCanvas");          
+          var savedImg = new Array();
+          var autoSaveFiles = false;
+          var relativePath = galleryDir+"/";
+          var diff_w = $('#slideshow').width();
+          var diff_h = $('#slideshow').height();
+          var startStrip=0,endStrip=0,fetchStripNr=19;
+          
+          if (galleryarray.length>0){
+            $('#slideshow').attr('src',relativePath + galleryarray[curimg].file);
+          }
+          
+        $('#slideshow').elevateZoom({
+            zoomType: "lens",
+            lensShape: "round",
+            lensSize: 200,
+            lensZoom:true,
+            cursor: "crosshair",
+            scrollZoom: "true",            
+            onImageSwapComplete: resizeCanvasDiff            
+          });  
+          
+          $('#pos').html(galleryarray.length);
+          $('#fileNoIn').change(function () {
+            var data = $(this).val();
+            var newIndex = 0;
+
+            newIndex = isNaN(parseInt(data)) ? curimg : parseInt(data, 10) - 1;
+
+            updateCurrentIndex(newIndex);
+            displayImages();
+          });
+          
+          function updatePosTxt() {
+            $('#fileNoIn').val((curimg + 1));
+          }
+          
+          updatePosTxt();
+
+          function updateCurrentIndex(toValue) {
+            lastid = curimg;
+            // console.log("update to " + toValue);
+            if (toValue >= galleryarray.length - 1) {
+              curimg = galleryarray.length - 1;
+            } else if (toValue <= 0) {
+              curimg = 0;
+            } else {
+              curimg = toValue;
+            }
+          }
+
+          function updateDiff(newImage) {
+            var w = canvas0.width;
+            var h = canvas0.height;
+
+            var context0 = canvas0.getContext('2d');
+//          $('#diffDiv').empty().append(canvas0);
+            // process differences an display result
+            var lastImage = relativePath + galleryarray[lastid].file;
+            // long time consumming
+            // delay play mode
+            diffReady = false;
+
+            var canvas = document.createElement("canvas");
+            canvas.height = h;
+            canvas.width = w;
+            var context = canvas.getContext('2d');
+            var canvas2 = document.createElement("canvas");
+            canvas2.height = h;
+            canvas2.width = w;
+            var context2 = canvas2.getContext('2d');
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context2.clearRect(0, 0, canvas2.width, canvas2.height);
+            var loading = new Image();
+            loading.onload = function () {
+              // loading.gif is 100x100 px
+              context0.drawImage(loading, canvas.width / 2 - 50, 100);
+            };
+            loading.src = "g_res/img/loading.gif";
+
+            var heavyImage = new Image();
+            heavyImage.onload = function () {
+              context.drawImage(heavyImage, 0, 0);
+
+              var heavyImage2 = new Image();
+              heavyImage2.onload = function () {
+                context2.drawImage(heavyImage2, 0, 0);
+                var imageData1 = context.getImageData(0, 0, canvas.width, canvas.height);
+                var data1 = imageData1.data;
+                var imageData2 = context2.getImageData(0, 0, canvas2.width, canvas2.height);
+                var data2 = imageData2.data;
+                var
+                        delta = 30;
+                // make gray
+                for (var i = 0; i < data1.length; i += 4) {
+                  data1[i] = 255 - data1[i];
+                  data1[i + 1] = 255 - data1[i + 1];
+                  data1[i + 2] = 255 - data1[i + 2];
+                }
+                // make gray
+                for (var i = 0; i < data2.length; i += 4) {
+                  data2[i] = 255 - data2[i];
+                  data2[i + 1] = 255 - data2[i + 1];
+                  data2[i + 2] = 255 - data2[i + 2];
+                }
+                for (var i = 0; i < data1.length; i += 4) {
+                  // data1 is lighter aka previous image is lighter          
+                  if (data1[i] > data2[i] + delta && data1[i + 1] > data2[i + 1] + delta && data1[i + 2] > data2[i + 2] + delta) {
+                    data1[i] = 0;
+                    data1[i + 1] = 200;
+                    data1[i + 2] = 0;
+                  } else if (data2[i] > data1[i] + delta && data2[i + 1] > data1[i + 1] + delta && data2[i + 2] > data1[i + 2] + delta) {
+                    data1[i] = 255;
+                    data1[i + 1] = 0;
+                    data1[i + 2] = 0;
+                  } else {
+                    data1[i + 1] = 0;
+                    data1[i] = 0;
+                    data1[i + 2] = 0;
+                  }
+                }
+
+
+                // overwrite original image
+                context0.putImageData(imageData1, 0, 0);
+                 var offset = $('#slideshow').offset();
+                 if (offset){
+                   $('#diffDiv').css('top',offset.top);
+                   $('#diffDiv').css('left',offset.left);
+                 }
+                // to scale canvas do this v
+//                context.putImageData(imageData1, 0, 0);
+//var imageObject=new Image();
+//imageObject.onload=function(){
+//
+//    context0.clearRect(0,0,canvas0.width,canvas0.height);
+//    
+////    context0.scale(1.2,1.2);
+//    context0.drawImage(imageObject,0,0);
+//    delete imageObject;
+//}
+//imageObject.src=canvas.toDataURL();
+                delete canvas;
+                delete canvas2;
+                delete context;
+                delete context2;
+                delete heavyImage2;
+                delete heavyImage;
+
+                //restart playing
+                diffReady = true;
+
+              };
+              //            heavyImage.src = "img.php?idx=" + curimg;
+              heavyImage2.src = newImage;
+            };
+            heavyImage.src = lastImage;
+
+          }
+          
+          
+          function saveCurrentImage() {
+            var smallImage = "<?php echo substr($_SESSION['curDir'], 2); ?>/" + galleryarray[curimg].file;
+            if ($.inArray(smallImage, savedImg) < 0) {
+              savedImg.push(smallImage);
+            }
+          }
+          
+          function toggleSaveFiles() {
+            autoSaveFiles = !autoSaveFiles;
+            if (autoSaveFiles) {
+              $('#fileName').addClass("autoSaveEnable");
+            } else {
+              $('#fileName').removeClass("autoSaveEnable");
+            }
+          }
+          
+          function displaySavedImages() {
+            var toPut = "";
+            for (var i = 0; i < savedImg.length; i++) {
+              toPut = toPut + "<br>" + savedImg[i];
+            }
+            $('#savedImagesLst').html(toPut);
+            $('#savedImages').toggle();
+          }
+          
+          function unsaveCurrentImage() {
+            var smallImage = "<?php echo substr($_SESSION['curDir'], 2); ?>/" + galleryarray[curimg].file;
+            var index = savedImg.indexOf(smallImage);
+            if (index > -1) {
+              savedImg.splice(index, 1);
+            }
+          }
+          
+
+          function animateFooter() {
+            if ($('#footer').is(':visible')) {
+              preloadFilmstrip();
+              $('.footerImg').removeClass("curImg");
+              $('#fImg_' + curimg).addClass("curImg");
+              var offset = $('#fImg_' + curimg).offset();
+              var scrollTo = $('#fImg_' + curimg);
+              
+              if (offset) {
+
+                var pw = $('#fImg_' + curimg).parent().width;
+                var ofL = $('#footer').offset().left;
+                var w = $('#footer').width();
+                var ws = $('#scroller').width();
+
+                var sL = $('#footer').scrollLeft();
+                var scrollTox = scrollTo.offset().left - ofL + sL;
+
+                if (scrollTox > w / 2) {
+
+                  if (scrollTox > w / 2 && scrollTox < ws - w / 2) {
+                    scrollTox = scrollTox - w / 2;
+                  }
+                } else {
+                  scrollTox = 0;
+                }
+
+                $('#footer').animate({
+
+                  scrollLeft: scrollTox
+                }, 100);
+//console.log('scroll '+'#fImg_'+curimg+' '+offset.left);
+
+              }
+            }
+          }
+          function imgSwitchF(smallImg,largeImg){            
+    if (!smallImg) return;
+//      console.log('switch #########',smallImg,largeImg);
+      
+            if (ez){                      
+            ////console.log('XXXXXXXXXX',ez);
+              ez.swaptheimage(smallImg,largeImg);
+            }else{                            
+              $('#slideshow').load(function(){
+                  resizeCanvasDiff();
+                  });                           
+              $('#slideshow').attr('src',smallImg);
+            }
+
+          }
+
+          function displayImages() {
+            animateFooter();
+                              
+            if ($('#fullSizeDiv').is(':visible')) {
+              showOriginalSize();
+            }
+            var smallImage = "g_res/img/noImage.png";
+            var largeImage = "g_res/img/noImage.png";
+            
+            if ((galleryarray.length > 0) && diffReady) {
+              if (autoSaveFiles === true) {
+                saveCurrentImage();
+              }
+              smallImage = relativePath + galleryarray[curimg].file;
+              largeImage = relativePath + galleryarray[curimg].file;
+
+
+              var toreplace = "<?php echo __INSTALL_PATH__; ?>/";
+              var toShrink = largeImage.replace(toreplace, "");
+              toreplace = "<?php echo $_SESSION['curDir']; ?>/";
+              toShrink = largeImage.replace(toreplace, "");
+              $('#fileName').html(toShrink);
+              
+              imgSwitchF(smallImage, largeImage);
+            
+
+              updatePosTxt();
+              if (showDiff === true) {
+                updateDiff(smallImage);
+              } else {
+                $('#diffDiv').hide();
+//                $('#diffCanvas').hide();
+              }
+
+            } else if (galleryarray.length == 0) {
+              imgSwitchF(smallImage, largeImage);
+
+              $('#fileName').html("Album contains no image!");
+            } else if (diffReady !== true) {
+              //  console.log("Wait one more step! Diff not ready");
+            }                     
+            displayExif();
+          }
+          
+          function displayExif(){
+          if ($('#exifInfo').is(':visible')) {
+            $('#exifInfo').html('');
+            var img = new Image();
+            img.src=relativePath + galleryarray[curimg].file;
+             EXIF.getData(img, function() {               
+               $('#exifInfo').html('<pre>'+EXIF.pretty(img)+'</pre>');                                   
+                });
+           }
+          }
+          function toggleExifInfo(){   
+          $('div.exif').toggle();
+          displayExif();            
+          }
+          
+          function showOriginalSize() {
+
+            $('#fullSizeDiv').show();
+            $('#fullSizeImg').load(function () {
+              // fit to window
+              var divArea = $('#fullSizeDiv');
+              var area = $('#fullSizeImg');
+              
+              var top,left;
+              if (divArea.width()>area.width()){
+                left='-'+Math.round(area.width() / 2)+'px'
+              }else{
+                left='-'+Math.round(divArea.width() / 2)+'px';
+              }
+              if (divArea.height()>area.height()){
+                top='-'+Math.round(area.height() / 2)+'px'
+              }else{
+                top='-'+Math.round(divArea.height() / 2)+'px'
+              }
+              $('#fullSizeImg').css({
+                left: '50%',
+                top: '50%',
+//                'max-height': divArea.height() + 'px',
+//                'max-width': divArea.width() + 'px',
+                'margin-top':top,
+                'margin-left': left
+              });
+              // \ fit to window
+            
+            }).attr('src', relativePath + galleryarray[curimg].file);
+
+
+          }
+          
+          document.onkeydown = function (e) {
+            var e = e || window.event;
+
+    //console.log("press "+e.which +":"+e.keyCode);
+
+            switch (e.which || e.keyCode) {
+              case 37: // left            
+                $('#bDown').click();
+                break;
+
+              case 38: // up
+                switch_style("white");
+                break;
+
+              case 39: // right
+                $('#bUp').click();
+                break;
+
+              case 40: // down
+                switch_style("gray");
+                break;
+              case 27: // esc
+                $('.ontopDiv').hide();
+                break;
+              case 13: // enter
+                break;
+              case 65: // a
+                // save
+                displaySavedImages();
+                break;
+              case 69: //e
+                toggleExifInfo();                
+                break;
+              case 87: // w
+                // save
+                toggleSaveFiles();
+                break;
+              case 86: // v
+                // save
+                toggleDiff();
+                break;
+              case 83: // s
+                // save
+                saveCurrentImage();
+                break;
+              case 68: // d
+                // save
+                unsaveCurrentImage();
+                break;
+              case 70: //f
+                $('#filmStripLabel').click();
+                break;
+              case 80: // p
+                $('#bPlay').click();
+                break;
+
+              case 191: // ? or /
+                $('#getHelp').click();
+                break;
+              default:
+                return; // exit this handler for other keys
+            }
+            e.preventDefault();
+          };
+          
+          $('#getHelp').click(function () {
+            $('.help').toggle();
+          });
+          $('#bDown').click(function () {
+            updateCurrentIndex(curimg - 1);
+            displayImages();
+          });
+          $('#bUp').click(function () {
+            updateCurrentIndex(curimg + 1)
+            displayImages();
+          });
+          $('#slideshow').click(function () {
+            showOriginalSize();
+          });
+          $('#bFull').click(function(){
+            showOriginalSize();
+          });
+          $('#fullSizeImg').click(function () {
+            $('#fullSizeImg').attr("src", "g_res/img/noImage.png");
+            $('#fullSizeDiv').hide();
+            $(document).scrollTop();
+          });
+            $('.close').click(function () {
+            $(this).parent().hide();
+          });
+          $('.menuTitle').click(function(){
+            $('.menuTitle form').show();
+          });
+          $('#bPlay').click(function () {
+            if (play === false) {
+              $('#bPlay').addClass("pauseBtn");
+              play = setInterval(function () {
+                updateCurrentIndex(curimg + 1);
+                displayImages();
+                if (curimg==galleryarray.length-1){
+                   $('#bPlay').removeClass("pauseBtn");
+                  clearInterval(play);
+                  play = false;
+                }
+              }, 1000);
+            } else {
+              $('#bPlay').removeClass("pauseBtn");
+              clearInterval(play);
+              play = false;
+            }
+          });
+
+          function toggleDiff() {
+            if ($('#diffChk').hasClass('chkDown')) {
+              //disable diff view
+              $('#diffChk').removeClass('chkDown');
+              showDiff = false;
+              $('#diffDiv').hide();
+            } else {
+              if (showDiff !== true) {
+                // enable diff view                           
+                $('#diffChk').addClass('chkDown');
+                showDiff = true;
+                $('#diffDiv').show();
+                displayImages();
+              } else {
+                // currently showing difs
+              }
+            }
+
+          }
+          function showImage(index) {
+            updateCurrentIndex(index);
+            displayImages();
+          }
+          
+          
+          function loadAt(start,end,append){            
+
+              if (append===true){
+                for (var i = start; i < end; i++) {
+              text_ul = '<li><img id="fImg_' + i + '" onclick="showImage(' + i + ');" src="' + relativePath + galleryarray[i].file + '" class="footerImg"></li>';
+              $('#listImg').append(text_ul);
+              //console.log('at end start='+start+" stop="+end);
+              $('#listImg').find('li:first').remove();
+              startStrip=startStrip+1;
+            }
+             }else{
+                         for (var i = end-1; i >= start; i--) {
+              text_ul = '<li><img id="fImg_' + i + '" onclick="showImage(' + i + ');" src="' + relativePath + galleryarray[i].file + '" class="footerImg"></li>';
+              $('#listImg').prepend(text_ul);
+              //console.log('at start start='+start+" stop="+end);
+              $('#listImg').find('li:last').remove();
+              endStrip=endStrip-1;
+            }
+             }            
+               
+          }
+          
+          function preloadFilmstrip(){
+         
+                var delta=Math.round((fetchStripNr-1)/2);
+                var text_ul='';
+          
+            var newInterval = updateStripInterval();    
+            //console.log("idx",curimg,"start:",startStrip,"end",endStrip,"newS",newInterval.start,"newE",newInterval.end);
+            
+            if (endStrip>newInterval.start && endStrip<newInterval.end){
+              loadAt(endStrip,newInterval.end,true);
+              endStrip=newInterval.end;
+            }else if(startStrip>newInterval.start && startStrip<newInterval.end){
+              loadAt(newInterval.start,startStrip,false);
+              startStrip=newInterval.start;
+            }else if (startStrip<=curimg && curimg<endStrip){
+              // action strip
+            }else{
+              //console.log('new strip idx',curimg);
+              $('#listImg').empty();
+              populateFooter();            
+            }
+          
+          
+            
+          }
+          
+          function updateStripInterval(){
+            var delta=Math.round((fetchStripNr-1)/2);
+            var start_Strip=(curimg-delta>0 ? curimg-delta : 0);
+            var dd=start_Strip+fetchStripNr;
+            var end_Strip=(dd<= galleryarray.length ? dd : galleryarray.length);                        
+            return({start:start_Strip,end:end_Strip});
+          }
+          
+          function populateFooter() {
+            var text_ul = "";
+            var interval = updateStripInterval();
+            for (var i = interval.start; i < interval.end; i++) {
+              text_ul = text_ul + '<li><img id="fImg_' + i + '" onclick="showImage(' + i + ');" src="' + relativePath + galleryarray[i].file + '" class="footerImg"></li>';
+            }
+            text_ul = text_ul + "";
+            $('#listImg').append(text_ul);
+            startStrip = interval.start;
+            endStrip = interval.end;
+          //console.log('start='+startStrip+" stop="+endStrip);
+          }
+          
+          function resizeCanvasDiff() {
+            var w = $('#slideshow').width();
+            var h = $('#slideshow').height();
+//            alert(w+":"+h+":"+diff_w+":"+diff_h);
+//            console.log(w+":"+h+":"+diff_w+":"+diff_h);
+            if (diff_h != h || diff_w != w) {
+              canvas0.height = h;
+              canvas0.width = w;
+              diff_w = w;
+              diff_h = h;
+//            console.log('resize to '+w+':'+h);
+            } else {
+              // do nothing
+            }
+//            var z = $('#slideshow').data('elevateZoom');
+            if (ez) {
+              ez.zoomLevel = 1;
+            }
+          }
+
+
+          $(document).ready(function () {
+            $('#diffChk').click(toggleDiff);
+
+            resizeCanvasDiff();
+            if (galleryarray.length > 2) {
+              $('#footer').perfectScrollbar();
+              $('#exifInfo').perfectScrollbar();
+              $('#filmStripLabel').click(function () {
+                $('#footer').toggle();
+                animateFooter();
+              });
+              $('#filmStripLabel').show();
+            } else {
+              $('#filmStripLabel').hide();
+            }
+                   
+          });
+          
+
+          window.onload = function () {                        
+            set_style_from_cookie();                   
+            populateFooter();
+            ez = $('#slideshow').data('elevateZoom');      
+            
+            
+            displayImages();            
+            resizeCanvasDiff();
+          }
+
+          // Resize
+          $(window).resize(function () {
+            var area = $(window);            
+            resizeCanvasDiff();
+//            
+            //  fit to window?
+//             $('#fullSizeDiv').css({
+//               'height': Math.round(area.height()) + 'px',
+//                'width': Math.round(area.width()) + 'px'});
+//              $('#fullSizeImg').css({
+//               'max-height': Math.round(area.height()) + 'px',
+//                'max-width': Math.round(area.width()) + 'px'});
+          // \ fit to window
+              
+            $('#slideshow').css({              
+              'max-width': Math.round(area.width()*0.8) + 'px'
+            });
+//            console.log('h',area.height(),'w',area.width());
+          }).trigger('resize');
+          
+        
+          
+        </script>
+
+    </body></html>

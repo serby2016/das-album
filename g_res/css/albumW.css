@@ -1,0 +1,73 @@
+body{
+    color: #666;
+    background-color: #eee;
+}
+#savedImages{
+    background: #F8F2DF;
+    color: #000;    
+}
+.ontopDiv{
+    border:1px solid #D6D6D6;
+
+    -webkit-box-shadow: -1px 3px 20px 0px rgba(153,197,199,1);
+    -moz-box-shadow: -1px 3px 20px 0px rgba(153,197,199,1);
+    box-shadow: -1px 3px 20px 0px rgba(153,197,199,1);
+}
+.autoSaveEnable{
+    border:1px solid #905050;
+}
+.help,.exif{
+    background-color: #eee;
+}
+.help span{
+    
+}
+.help span:hover{
+    background-color: #F8F2DF;
+}
+#main{
+    border:1px solid gray;         
+}
+#left{    
+    border:0px solid gray;         
+}
+#right{
+    border-bottom: 1px solid gray; 
+}
+.playBtn{
+    background-image: url('../img/play.png');    
+    background-repeat: no-repeat;    
+}
+.pauseBtn{
+    background-image: url('../img/pause.png');
+    background-repeat: no-repeat;    
+}
+.nextBtn{
+    background-image: url('../img/next.png');
+    background-repeat: no-repeat;    
+}
+.prevBtn{
+    background-image: url('../img/prev.png');
+    background-repeat: no-repeat;    
+}
+.button{
+    background-color: #efefef;
+    border: 0px solid #666;
+    color:#666;
+}
+.button:hover,.btn:hover{
+    background-color: lightgray;
+}
+.chkDown{
+    background: greenyellow;
+}
+img.curImg{
+    border:3px solid gray;    
+}
+#scroller{   
+    background: lightgray;
+}
+.menuTitle form{
+    background-color: #efefef;
+}
+
