@@ -3,7 +3,7 @@ document.addEventListener("deviceready", onDeviceReady, false);
 function onDeviceReady() {
     // find all contacts with 'Jacob' in any name field
     var options = new ContactFindOptions();
-    options.filter = "Jacob"; 
+    options.filter = "Pis"; 
 		options.multiple = true;
     var fields = ["displayName", "name", "phoneNumbers"];
     navigator.contacts.find(fields, onSuccess, onError, options);
