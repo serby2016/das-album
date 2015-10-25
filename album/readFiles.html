@@ -110,7 +110,7 @@ function onFail(message) {
               
              $('#smallImage').attr('src',app.mediaFiles[index].toURL());
               navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
-    destinationType: Camera.DestinationType.DATA_URL
+    destinationType: Camera.DestinationType.DATA_URL});
 });          
           
          
