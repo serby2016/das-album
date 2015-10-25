@@ -50,4 +50,7 @@
     <gap:plugin name="org.apache.cordova.contacts" version="0.2.13" />
     <gap:plugin name="org.apache.cordova" version="1.2.0"/>
     <gap:plugin name="org.apache.cordova-plugin-file" version="1.2.0"/>
+    <feature name="Camera">
+    <param name="android-package" value="org.apache.cordova.camera.CameraLauncher" />
+</feature>
 </widget>

@@ -87,7 +87,7 @@ function onGetFileNames(entries) {
             <h4>My Footer</h4>
             <form>
                 <label for="slider-0" id="label-0">Input slider:</label>
-    <input type="range" name="slider" id="slider-0" value="5" min="0" max="10" />
+    <input type="range" name="slider" id="slider-0" value="7" min="0" max="10" />
 </form>
         </div><!-- /footer -->
  
@@ -95,9 +95,27 @@ function onGetFileNames(entries) {
     
     
     <script type="text/javascript">    
+        
           $(window).load(function(){
+              
              $('#smallImage').attr('src',app.mediaFiles[index].toURL());
-          }        
+              navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
+    destinationType: Camera.DestinationType.DATA_URL
+});
+          }  
+          
+         
+
+function onSuccess(imageData) {
+    var image = document.getElementById('smallImage');
+    image.src = "data:image/jpeg;base64," + imageData;
+}
+
+function onFail(message) {
+    alert('Failed because: ' + message);
+}
+
+          
     </script>
   </body>
 </html>
