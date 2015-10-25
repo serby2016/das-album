@@ -108,9 +108,10 @@ function onFail(message) {
 
           $(window).load(function(){
               
-             $('#smallImage').attr('src',app.mediaFiles[index].toURL());
+             $('#smallImage').attr('src','../g_res/img/close.png');
               navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
     destinationType: Camera.DestinationType.DATA_URL});
+
 });          
           
          
