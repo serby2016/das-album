@@ -89,6 +89,7 @@ function onGetFileNames(entries) {
                 <label for="slider-0" id="label-0">Input slider:</label>
     <input type="range" name="slider" id="slider-0" value="7" min="0" max="10" />
 </form>
+            <button id="select">ss</button>
         </div><!-- /footer -->
  
     </div><!-- /page -->
@@ -106,7 +107,7 @@ function onFail(message) {
 }
 
 
-          $(window).load(function(){
+          $('#select').click(function(){
               
              $('#smallImage').attr('src','../g_res/img/close.png');
               navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
