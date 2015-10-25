@@ -8,7 +8,7 @@
     <script src='../g_res/js/jquery-1.8.3.min.js'></script>
     <script src='../g_res/js/jquery.mobile-1.3.2.js'></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script type="text/javascript" charset="utf-8">
+<!--    <script type="text/javascript" charset="utf-8">
 var app = window.app || {};
 app.mediaFiles = [];
 app.initialize = function () {
@@ -68,7 +68,7 @@ function onGetFileNames(entries) {
 
 //window.console.log(app.mediaFiles[0].toURL());
 
-    </script>
+    </script>-->
   </head>
   <body>
           <div data-role="page">
@@ -96,16 +96,6 @@ function onGetFileNames(entries) {
     
     <script type="text/javascript">    
         
-          $(window).load(function(){
-              
-             $('#smallImage').attr('src',app.mediaFiles[index].toURL());
-              navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
-    destinationType: Camera.DestinationType.DATA_URL
-});
-          }  
-          
-         
-
 function onSuccess(imageData) {
     var image = document.getElementById('smallImage');
     image.src = "data:image/jpeg;base64," + imageData;
@@ -115,6 +105,15 @@ function onFail(message) {
     alert('Failed because: ' + message);
 }
 
+
+          $(window).load(function(){
+              
+             $('#smallImage').attr('src',app.mediaFiles[index].toURL());
+              navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
+    destinationType: Camera.DestinationType.DATA_URL
+});          
+          
+         
           
     </script>
   </body>
