@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pick Photo</title>
+
+    <script type="text/javascript" charset="utf-8" src="cordova-2.2.0.js"></script>
+    <script src='../g_res/js/jquery-1.8.3.min.js'></script>
+    <script src='../g_res/js/jquery.mobile-1.3.2.js'></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" charset="utf-8">
+var app = window.app || {};
+app.mediaFiles = [];
+app.initialize = function () {
+    app.bindEvents();
+};
+app.bindEvents = function () {
+    document.addEventListener('deviceready', app.onDeviceReady, false);
+};
+app.onDeviceReady = function () {
+   window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, onFileSystemSuccess, fail);
+};
+
+
+//----
+function onFileSystemSuccess(fileSystem) {
+    window.console.log(cordova.file.externalRootDirectory);
+    var directoryReader = fileSystem.createReader();
+    directoryReader.readEntries(function (entries) {
+        var i;
+        for (i = 0; i < entries.length; i++) {
+            if (entries[i].name === "DCIM") {
+                var dcimReader = entries[i].createReader();
+                dcimReader.readEntries(onGetDCIM, fail);
+                break; // remove this to traverse through all the folders and files
+            }
+        }
+    }, function () {
+        window.console.log("fail");
+    });
+}
+
+function onGetDCIM(entries) {
+    var i;
+    for (i = 0; i < entries.length; i++) {
+        if (entries[i].name === "100MEDIA") {
+            var mediaReader = entries[i].createReader();
+            mediaReader.readEntries(onGetFileNames, fail);
+            break; // remove this to traverse through all the folders and files
+        }
+        //This will log all files and directories inside 100MEDIA
+        window.console.log(" >>>>>>> " + entries[i].name);
+    }
+}
+
+
+function onGetFileNames(entries) {
+    var i;
+    for (i = 0; i < entries.length; i++) {
+        if (/\.(jpe?g|png|gif|bmp)$/i.test(entries[i].name)) {
+            app.mediaFiles.push(entries[i]);
+        }
+        //This will log all image files found
+        window.console.log(" $$$$$ " + entries[i].name);
+    }
+}
+
+
+window.console.log(app.mediaFiles[0].toURL());
+
+    </script>
+  </head>
+  <body>
+          <div data-role="page">
+ 
+        <div data-role="header">
+            <h1>My Title</h1>
+        </div><!-- /header -->
+ 
+        <div data-role="content">
+            <p>Hello world</p>
+            <img style="display:none;width:60px;height:60px;" id="smallImage" src="" />
+            <img style="display:none;" id="largeImage" src="" />
+        </div><!-- /content -->
+ 
+        <div data-role="footer">
+            <h4>My Footer</h4>
+            <form>
+    <label for="slider-0">Input slider:</label>
+    <input type="range" name="slider" id="slider-0" value="5" min="0" max="10" />
+</form>
+        </div><!-- /footer -->
+ 
+    </div><!-- /page -->
+    
+    
+    <script type="text/javascript">
+        $( "#slider-0" ).on( 'slidestop', function( event ) {
+                var index =$( "#slider-0" ).val();
+                $('#smallImage').attr('src',app.mediaFiles[index].toURL());
+                });
+    </script>
+  </body>
+</html>

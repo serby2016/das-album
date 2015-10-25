@@ -48,4 +48,6 @@
     <gap:splash gap:platform="winphone" src="phoneGap/res/screen/windows-phone/screen-portrait.jpg" />
     <access origin="http://127.0.0.1*" />
     <gap:plugin name="org.apache.cordova.contacts" version="0.2.13" />
+    <gap:plugin name="org.apache.cordova" version="1.2.0"/>
+    <gap:plugin name="org.apache.cordova-plugin-file" version="1.2.0"/>
 </widget>
