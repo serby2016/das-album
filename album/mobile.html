@@ -13,11 +13,12 @@
     <h1>jQuery Mobile Example</h1>
   </div>
   <div role="main" class="ui-content">
+      <div id="ss"></div>
     <label for="slider-0">Input slider:</label>
     <input type="range" name="slider-0" id="slider-0" value="60" min="0" max="100">
   </div>
     <script type="text/javascript">   
-        $( "#slider-0" ).on( 'slidestop', function(event) {
+        $( "#slider-0" ).change(function(event) {
         if (event.originalEvent) {
             //manual change
             alert('ss');
@@ -30,7 +31,19 @@
             //programmatic change
         }
     });
-        
+        $(window).load(function(){
+             $( "div.ui-content" ).on( "swipeleft", swipeleftHandler );
+ 
+  // Callback function references the event target and adds the 'swipeleft' class to it
+  function swipeleftHandler( event ){
+      var index =$( "#slider-0" ).val();  $('#ss').html(index);   
+//    $( event.target ).addClass( "swipeleft" );
+//            alert("STOP!"); 
+  }
+$("#slider-0").on("slidestop", function(e){
+   //alert("STOP!"); 
+});
+});
             
     </script>
 </body>
