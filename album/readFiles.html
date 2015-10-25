@@ -106,15 +106,16 @@ function onFail(message) {
     alert('Failed because: ' + message);
 }
 
-
+$(document).ready(function(){
+    
           $('#select').click(function(){
               
              $('#smallImage').attr('src','../g_res/img/close.png');
               navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
     destinationType: Camera.DestinationType.DATA_URL});
 
-});          
-          
+}); 
+});     
          
           
     </script>
